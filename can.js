@@ -5,6 +5,7 @@
     url: localStorage.getItem('zlg-bridge-url') || 'http://127.0.0.1:8790',
     es: null,
     connected: false,
+    live: false,
     paused: false,
     frames: [],
     rx: 0,
@@ -99,7 +100,11 @@
 
     const es = new EventSource(url + '/events');
     state.es = es;
-    es.onopen = () => setPill(el('bridgePill'), '桥接已连接', 'on');
+    es.onopen = () => {
+      setPill(el('bridgePill'), '桥接已连接', 'on');
+      // 复位上一次可能残留的总线会话：未点“连接设备”前不接收实时报文
+      post({ cmd: 'close', silent: true }).catch(() => {});
+    };
     es.onerror = () => {
       setPill(el('bridgePill'), '桥接断开', 'off');
       es.close();
@@ -108,9 +113,13 @@
     es.onmessage = (event) => {
       let data;
       try { data = JSON.parse(event.data); } catch { return; }
-      if (data.type === 'frame') appendFrame(data);
-      else if (data.type === 'status') {
+      if (data.type === 'frame') {
+        // 只有点过「连接设备」并处于连接态，才显示实时报文
+        if (!state.live) return;
+        appendFrame(data);
+      } else if (data.type === 'status') {
         state.connected = !!data.connected;
+        state.live = state.connected;
         setPill(el('busPill'), state.connected ? '总线已连接' : '总线空闲', state.connected ? 'on' : '');
         setPill(el('modePill'), data.mode === 'hw' ? '硬件模式' : data.mode === 'sim' ? '模拟模式' : '—', data.mode === 'hw' ? 'on' : '');
         el('btnOpen').disabled = state.connected;

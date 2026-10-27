@@ -302,7 +302,7 @@ class Handler(BaseHTTPRequestHandler):
         if cmd == "open":
             threading.Thread(target=BUS.open, args=(req.get("device", {}),), daemon=True).start()
         elif cmd == "close":
-            BUS.close()
+            BUS.close(silent=bool(req.get("silent")))
         elif cmd == "send":
             threading.Thread(target=BUS.send, args=(req.get("frames", []),), daemon=True).start()
         elif cmd == "status":
