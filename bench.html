@@ -63,6 +63,28 @@
 
   <section class="panel wide">
     <div class="panel-head">
+      <h2>自动化测试 · 老化 / 温循</h2>
+      <div class="stress-tools">
+        <label>时长
+          <select id="suiteDuration">
+            <option value="600">10 分钟</option>
+            <option value="3600" selected>1 小时</option>
+            <option value="28800">8 小时</option>
+            <option value="86400">24 小时</option>
+            <option value="20">20 秒（演示）</option>
+          </select>
+        </label>
+        <button id="btnSelectAll" class="btn">全选</button>
+        <button id="btnSuiteStart" class="btn primary">开始老化</button>
+        <button id="btnSuiteStop" class="btn" disabled>停止</button>
+      </div>
+    </div>
+    <p class="note">老化 / 温循期间循环执行下列用例；WiFi、蓝牙、绿牙每次测试后重启，重复 10 次验证系统稳定性。</p>
+    <div id="caseGrid" class="case-grid"></div>
+  </section>
+
+  <section class="panel wide">
+    <div class="panel-head">
       <h2>执行记录</h2>
       <div class="monitor-tools">
         <button id="btnClearLog" class="btn">清空</button>

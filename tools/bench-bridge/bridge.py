@@ -161,6 +161,118 @@ def stop_stress():
     STATE["stop"].set()
 
 
+# ---------------- 自动化测试用例 ----------------
+CASES = {
+    "wifi": {"name": "WiFi 开关", "loops": 10, "reboot": True, "sub": "开/关 ×10，每次重启"},
+    "bt": {"name": "蓝牙开关", "loops": 10, "reboot": True, "sub": "开/关 ×10，每次重启"},
+    "nearlink": {"name": "绿牙 / 星闪", "loops": 10, "reboot": True, "sub": "开/关 ×10，每次重启"},
+    "camera_bar": {"name": "Camera 彩条", "loops": 3, "reboot": False, "sub": "彩条送图，查黑屏/花屏/闪屏"},
+    "display_split": {"name": "分屏送图", "loops": 3, "reboot": False, "sub": "仪表/中控/副驾/后排/HUG 送图"},
+    "mcu": {"name": "MCU 自检", "loops": 3, "reboot": False, "sub": "心跳 / ADC / 复位链路"},
+    "audio_loop": {"name": "音频自环回", "loops": 3, "reboot": False, "sub": "1kHz 播放 + MIC 回采"},
+}
+
+
+def reboot_device():
+    """真实模式下重启并等待 boot_completed；模拟模式只等待。"""
+    if SIM:
+        time.sleep(3)
+        return True
+    ok, _ = run(["adb", "reboot"])
+    if not ok:
+        return False
+    for _ in range(60):
+        time.sleep(2)
+        done, out = run(["adb", "shell", "getprop", "sys.boot_completed"])
+        if done and out.strip().startswith("1"):
+            return True
+    return False
+
+
+def case_step(case_id: str, index: int) -> tuple[bool, str]:
+    if SIM:
+        time.sleep(0.6)
+        return True, f"{CASES[case_id]['name']} 第 {index + 1} 次通过"
+    if case_id == "wifi":
+        run(["adb", "shell", "svc", "wifi", "disable"])
+        time.sleep(1)
+        ok, out = run(["adb", "shell", "svc", "wifi", "enable"])
+        return ok, out[:120]
+    if case_id == "bt":
+        run(["adb", "shell", "svc", "bluetooth", "disable"])
+        time.sleep(1)
+        ok, out = run(["adb", "shell", "svc", "bluetooth", "enable"])
+        return ok, out[:120]
+    return False, "该用例需要厂商接口（未接入）"
+
+
+def run_case(case_id: str):
+    meta = CASES.get(case_id)
+    if not meta:
+        return
+    loops = meta["loops"]
+    failed = 0
+    for i in range(loops):
+        ok, detail = case_step(case_id, i)
+        if not ok:
+            failed += 1
+        pct = int((i + 1) / loops * 100)
+        emit({
+            "type": "case", "id": case_id, "pct": pct,
+            "status": "running" if pct < 100 else ("pass" if failed == 0 else "fail"),
+            "detail": detail, "loop": i + 1, "total": loops,
+        })
+        if meta["reboot"] and i < loops - 1:
+            emit({"type": "case", "id": case_id, "pct": pct, "status": "reboot",
+                  "detail": "重启中…", "loop": i + 1, "total": loops})
+            reboot_device()
+    log(f"{meta['name']} 完成：{loops - failed}/{loops} 通过", "info" if failed == 0 else "error")
+
+
+def suite_worker(duration: int, selected: list[str]):
+    STATE["running"] = True
+    STATE["stop"].clear()
+    status()
+    log(f"老化 / 温循开始：{'、'.join(CASES[c]['name'] for c in selected)}，时长 {duration}s")
+
+    started = time.time()
+    rounds = 0
+    failures = 0
+    while not STATE["stop"].is_set() and time.time() - started < duration:
+        rounds += 1
+        for case_id in selected:
+            if STATE["stop"].is_set():
+                break
+            meta = CASES[case_id]
+            for i in range(meta["loops"]):
+                ok, detail = case_step(case_id, i)
+                if not ok:
+                    failures += 1
+                pct = int((i + 1) / meta["loops"] * 100)
+                emit({
+                    "type": "case", "id": case_id, "pct": pct, "round": rounds,
+                    "status": "pass" if ok else "fail", "detail": detail,
+                })
+                if meta["reboot"] and i < meta["loops"] - 1:
+                    emit({"type": "case", "id": case_id, "pct": pct, "status": "reboot",
+                          "detail": "重启中…", "round": rounds})
+                    reboot_device()
+        emit({"type": "suite", "round": rounds, "elapsed": int(time.time() - started),
+              "duration": duration, "failures": failures})
+
+    STATE["running"] = False
+    status()
+    log(f"老化结束：{rounds} 轮，失败 {failures} 次", "info" if failures == 0 else "error")
+
+
+def start_suite(duration: int, selected: list[str]):
+    if STATE["running"]:
+        log("已有测试在运行", "warn")
+        return
+    picked = [c for c in selected if c in CASES] or list(CASES)
+    threading.Thread(target=suite_worker, args=(max(10, duration), picked), daemon=True).start()
+
+
 # ---------------- HTTP / SSE ----------------
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
@@ -232,6 +344,14 @@ class Handler(BaseHTTPRequestHandler):
                 stop_stress()
             else:
                 start_stress(int(req.get("duration", 60)))
+        elif cmd == "case":
+            if req.get("action") == "run":
+                threading.Thread(target=run_case, args=(req.get("id", ""),), daemon=True).start()
+        elif cmd == "suite":
+            if req.get("action") == "stop":
+                STATE["stop"].set()
+            else:
+                start_suite(int(req.get("duration", 600)), req.get("cases", []))
         elif cmd == "status":
             status()
         elif cmd == "hello":

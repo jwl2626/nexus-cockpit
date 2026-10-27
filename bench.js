@@ -17,6 +17,16 @@
     { id: 'ufs', name: 'UFS 应力', sub: '大块读写 / 校验', metrics: [['写吞吐', 'MB/s'], ['延迟 P99', 'ms'], ['IO 错', '次']] },
   ];
 
+  const CASES = [
+    { id: 'wifi', name: 'WiFi 开关', sub: '开/关 ×10，每次重启', loops: 10, reboot: true },
+    { id: 'bt', name: '蓝牙开关', sub: '开/关 ×10，每次重启', loops: 10, reboot: true },
+    { id: 'nearlink', name: '绿牙 / 星闪', sub: '开/关 ×10，每次重启', loops: 10, reboot: true },
+    { id: 'camera_bar', name: 'Camera 彩条', sub: '彩条送图，查黑屏/花屏/闪屏', loops: 3, reboot: false },
+    { id: 'display_split', name: '分屏送图', sub: '五屏送图，查黑花闪', loops: 3, reboot: false },
+    { id: 'mcu', name: 'MCU 自检', sub: '心跳 / ADC / 复位链路', loops: 3, reboot: false },
+    { id: 'audio_loop', name: '音频自环回', sub: '1kHz 播放 + MIC 回采', loops: 3, reboot: false },
+  ];
+
   const state = {
     url: localStorage.getItem('bench-bridge-url') || 'http://127.0.0.1:8791',
     es: null,
@@ -115,6 +125,11 @@
         applyStress(data);
       } else if (data.type === 'log') {
         log('SYS', data.level === 'error' ? 'Fail' : 'Info', data.msg);
+      } else if (data.type === 'case') {
+        applyCase(data);
+      } else if (data.type === 'suite') {
+        log('SUITE', data.failures ? 'Fail' : 'Info',
+          `第 ${data.round} 轮 · ${data.elapsed}/${data.duration}s · 失败 ${data.failures}`);
       } else if (data.type === 'status') {
         state.running = !!data.running;
         setPill(el('modePill'), data.mode === 'hw' ? '硬件模式' : data.mode === 'sim' ? '模拟模式' : '—', data.mode === 'hw' ? 'on' : '');
@@ -197,14 +212,69 @@
     link.click();
   }
 
+  function renderCases() {
+    el('caseGrid').innerHTML = CASES.map((c) => `
+      <div class="case" data-case="${c.id}">
+        <div class="case-head">
+          <input type="checkbox" id="chk-${c.id}" checked>
+          <span class="case-name">${c.name}</span>
+        </div>
+        <div class="case-sub">${c.sub}</div>
+        <div class="case-body">
+          <div class="bar" style="flex:1"><i id="cbar-${c.id}"></i></div>
+          <span class="case-pct" id="cpct-${c.id}">0%</span>
+          <span class="case-state" id="cstate-${c.id}">待运行</span>
+        </div>
+      </div>`).join('');
+  }
+
+  function applyCase(data) {
+    const bar = el('cbar-' + data.id);
+    if (!bar) return;
+    bar.style.width = (data.pct ?? 0) + '%';
+    el('cpct-' + data.id).textContent = (data.pct ?? 0) + '%';
+    const st = el('cstate-' + data.id);
+    const map = { pass: '通过', fail: '失败', reboot: '重启中', running: '执行中' };
+    st.textContent = map[data.status] || data.status;
+    st.className = 'case-state ' + (data.status || '');
+    if (data.status === 'pass' || data.status === 'fail') {
+      log(data.id.toUpperCase(), data.status === 'pass' ? 'Pass' : 'Fail', data.detail || '');
+    }
+  }
+
+  function runCase(id) {
+    post({ cmd: 'case', action: 'run', id }).catch(() => log('CASE', 'Fail', '桥接未连接'));
+  }
+
+  function startSuite() {
+    const duration = Number(el('suiteDuration').value);
+    const cases = CASES.filter((c) => el('chk-' + c.id).checked).map((c) => c.id);
+    if (!cases.length) return;
+    CASES.forEach((c) => {
+      el('cbar-' + c.id).style.width = '0%';
+      el('cpct-' + c.id).textContent = '0%';
+      el('cstate-' + c.id).textContent = '排队中';
+    });
+    post({ cmd: 'suite', action: 'start', duration, cases })
+      .catch(() => log('SUITE', 'Fail', '桥接未连接，无法启动老化'));
+  }
+
+  function stopSuite() {
+    post({ cmd: 'suite', action: 'stop' }).catch(() => {});
+  }
+
   renderDevices();
   renderStress();
+  renderCases();
   el('bridgeUrl').value = state.url;
   el('bridgeConnect').addEventListener('click', connectBridge);
   el('btnSelfAll').addEventListener('click', selfCheckAll);
   el('btnStressStart').addEventListener('click', startStress);
   el('btnStressStop').addEventListener('click', stopStress);
   el('btnExport').addEventListener('click', exportCsv);
+  el('btnSelectAll').addEventListener('click', () => CASES.forEach((c) => { el('chk-' + c.id).checked = true; }));
+  el('btnSuiteStart').addEventListener('click', startSuite);
+  el('btnSuiteStop').addEventListener('click', stopSuite);
   el('btnClearLog').addEventListener('click', () => {
     state.logs = [];
     el('logBody').innerHTML = '<tr class="empty"><td colspan="4">尚未执行</td></tr>';

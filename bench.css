@@ -47,3 +47,20 @@
 .table-wrap.short { max-height: 260px; }
 .log-fail { color: #ff9a9a; }
 .log-ok { color: #9ae6b4; }
+
+/* 自动化用例 */
+.case-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+.case {
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.case-head { display: flex; align-items: center; gap: 8px; }
+.case-head input { accent-color: var(--accent); }
+.case-name { font-size: 12.5px; font-weight: 600; }
+.case-sub { font-size: 10px; color: var(--muted); margin: 3px 0 8px 22px; line-height: 1.4; }
+.case-body { display: flex; align-items: center; gap: 8px; }
+.case-pct { font-family: var(--mono); font-size: 10px; color: var(--muted); width: 34px; text-align: right; }
+.case-state { font-size: 10px; margin-left: auto; color: var(--muted); font-family: var(--mono); }
+.case-state.pass { color: #9ae6b4; }
+.case-state.fail { color: #ff9a9a; }
+.case-state.reboot { color: var(--warn); }
