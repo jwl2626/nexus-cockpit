@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS C7 智能座舱 · 产品定义</title>
+<link rel="stylesheet" href="product.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">C7</div>
+    <div>
+      <div class="brand-name">NEXUS C7 智能座舱</div>
+      <div class="brand-sub">PRODUCT DEFINITION · 域控 / 多屏 / 语音 / 连接</div>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="brief">产品定义</button>
+    <button class="tab" data-tab="hw">硬件架构</button>
+    <button class="tab" data-tab="sw">软件架构</button>
+    <button class="tab" data-tab="plan">开发计划</button>
+  </nav>
+  <div class="links">
+    <a href="index.html">诊断台</a>
+    <a href="bench.html">台架</a>
+  </div>
+</header>
+
+<main>
+  <!-- ============ 产品定义 ============ -->
+  <section class="pane active" id="pane-brief">
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">PRODUCT BRIEF · 2026</span>
+        <h1>为 15–25 万级新能源车<br>做一套「看得见、听得清、连得上」的座舱</h1>
+        <p>不是堆屏幕，而是用一颗主流 SoC + 虚拟化，把仪表、中控、副驾、HUD 和语音连成一个整体；
+           硬件按平台化设计，一套域控覆盖三个配置档，摊薄成本。</p>
+        <div class="hero-kpi">
+          <div><b>3</b><span>配置档共用一套硬件</span></div>
+          <div><b>≤ ¥1,800</b><span>单台域控 BOM 目标</span></div>
+          <div><b>≤ 2.5s</b><span>倒车影像冷启动</span></div>
+          <div><b>≤ 25s</b><span>冷启动到可交互</span></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-title">一句话定位</div>
+        <p class="quote">「20 万级车里最跟手的座舱」——以交互延迟和语音唤醒作为差异化，而不是以屏幕数量。</p>
+        <div class="hero-card-title">不做什么</div>
+        <ul>
+          <li>不自研 SoC，用高通/芯驰成熟平台</li>
+          <li>不做 L3 自动驾驶（那是 MDC 的事）</li>
+          <li>不追求 8K 屏，优先保证帧率与触控延迟</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <article class="card">
+        <h3>目标用户</h3>
+        <p>25–40 岁家庭首购/换购；每天通勤 40min；对「车机卡不卡、语音听不听得懂」最敏感。</p>
+        <div class="tag-row"><span>家庭</span><span>通勤</span><span>科技敏感</span></div>
+      </article>
+      <article class="card">
+        <h3>核心卖点</h3>
+        <ul class="tight">
+          <li>触控响应 ≤ 100ms，滑动无掉帧</li>
+          <li>语音唤醒 ≤ 500ms，可见即可说</li>
+          <li>导航/音乐/电话三任务并行不卡</li>
+          <li>倒车影像 2.5s 内出图</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>配置三档</h3>
+        <table class="mini">
+          <tr><th>版本</th><th>屏</th><th>SoC</th></tr>
+          <tr><td>标准</td><td>双联屏</td><td>8155</td></tr>
+          <tr><td>舒适</td><td>+副驾屏</td><td>8155</td></tr>
+          <tr><td>旗舰</td><td>+HUD</td><td>8295</td></tr>
+        </table>
+      </article>
+    </div>
+
+    <div class="grid-2">
+      <article class="card">
+        <h3>产品指标（可验收）</h3>
+        <table class="mini wide">
+          <tr><th>维度</th><th>指标</th><th>目标</th></tr>
+          <tr><td>启动</td><td>冷启动到桌面</td><td>≤ 25s</td></tr>
+          <tr><td>交互</td><td>触控到画面响应</td><td>≤ 100ms</td></tr>
+          <tr><td>语音</td><td>唤醒延迟</td><td>≤ 500ms</td></tr>
+          <tr><td>影像</td><td>倒车影像出图</td><td>≤ 2.5s</td></tr>
+          <tr><td>稳定性</td><td>72h 连续运行崩溃</td><td>0 次</td></tr>
+          <tr><td>功耗</td><td>整机满载</td><td>≤ 45W</td></tr>
+        </table>
+      </article>
+      <article class="card">
+        <h3>用户旅程（关键 5 幕）</h3>
+        <ol class="journey">
+          <li><b>靠近</b> 蓝牙钥匙识别，迎宾灯 + 座椅记忆</li>
+          <li><b>上车</b> 仪表 2s 内点亮，中控延续上次任务</li>
+          <li><b>出发</b> 导航语音接力，HUD 显示转向</li>
+          <li><b>途中</b> 副驾看视频，主驾导航不被抢占</li>
+          <li><b>到达</b> 倒车影像 + 雷达融合，泊车辅助</li>
+        </ol>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 硬件架构 ============ -->
+  <section class="pane" id="pane-hw">
+    <div class="section-head">
+      <h2>硬件架构</h2>
+      <p>一颗 SoC 跑虚拟化，一颗 MCU 做安全岛；显示走 SerDes，音频走 A2B，连接模组独立。</p>
+    </div>
+
+    <div class="arch">
+      <div class="arch-row">
+        <div class="node display">仪表 12.3"<small>1920×720</small></div>
+        <div class="node display">中控 15.6"<small>2560×1440</small></div>
+        <div class="node display">副驾 12.3"<small>1920×720</small></div>
+        <div class="node display">HUD / HUG<small>854×480</small></div>
+      </div>
+      <div class="arch-link">SerDes（TI 983/981）· FPD-Link IV</div>
+      <div class="arch-row core">
+        <div class="node soc"><b>SoC</b><small>高通 SA8155P / 8295</small><em>Android + QNX 双系统</em></div>
+        <div class="node mcu"><b>MCU 安全岛</b><small>TC397 / 芯驰 E3</small><em>看门狗 · 电源 · 车身 IO</em></div>
+      </div>
+      <div class="arch-link">SPI / 共享内存 · 心跳 1Hz</div>
+      <div class="arch-row">
+        <div class="node io">摄像头 ×5<small>DMS/OMS/环视</small></div>
+        <div class="node io">音频<small>A2B 功放 + MIC×4</small></div>
+        <div class="node io">连接<small>WiFi6 / BT5.2 / 5G / UWB</small></div>
+        <div class="node io">存储<small>UFS 128G + LPDDR5 12G</small></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <article class="card">
+        <h3>SoC 选型对比</h3>
+        <table class="mini wide" id="socTable">
+          <tr><th>平台</th><th>工艺</th><th>算力</th><th>多屏</th><th>生态</th><th>结论</th></tr>
+          <tr data-soc="8155"><td>高通 SA8155P</td><td>7nm</td><td>8核 + Adreno 640</td><td>4×4K</td><td>成熟</td><td class="pick">主销选型</td></tr>
+          <tr data-soc="8295"><td>高通 SA8295P</td><td>5nm</td><td>30 TOPS NPU</td><td>6×4K</td><td>成熟</td><td class="pick">旗舰选型</td></tr>
+          <tr data-soc="x9"><td>芯驰 X9U</td><td>16nm</td><td>8核 + 8TOPS</td><td>4 屏</td><td>国产化</td><td>国产替代</td></tr>
+          <tr data-soc="m3"><td>瑞萨 R-Car M3</td><td>16nm</td><td>2×A57</td><td>3 屏</td><td>车规稳</td><td>仪表专用</td></tr>
+        </table>
+        <p class="note">选择逻辑：主销用 8155 摊成本，旗舰用 8295 拉开差距；国产化项目切芯驰 X9，软件栈不变（Android + Hypervisor）。</p>
+      </article>
+      <article class="card">
+        <h3>关键器件与成本（单台估算）</h3>
+        <table class="mini wide">
+          <tr><th>项</th><th>规格</th><th>成本</th></tr>
+          <tr><td>SoC + 内存</td><td>8155 + 12G LPDDR5</td><td>¥520</td></tr>
+          <tr><td>存储</td><td>UFS 3.1 128G</td><td>¥120</td></tr>
+          <tr><td>MCU</td><td>TC397</td><td>¥60</td></tr>
+          <tr><td>SerDes 套片</td><td>983/981 ×4 路</td><td>¥210</td></tr>
+          <tr><td>连接模组</td><td>WiFi6 + BT5.2 + 5G</td><td>¥380</td></tr>
+          <tr><td>电源与 PCB</td><td>PMIC + 10 层板</td><td>¥260</td></tr>
+          <tr class="sum"><td colspan="2">合计（不含屏）</td><td>≈ ¥1,550</td></tr>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 软件架构 ============ -->
+  <section class="pane" id="pane-sw">
+    <div class="section-head">
+      <h2>软件架构</h2>
+      <p>虚拟化双系统：仪表跑 QNX 保实时，中控跑 Android 保生态；中间件统一 SOME/IP 与 Android HAL。</p>
+    </div>
+
+    <div class="stack">
+      <div class="layer app"><b>应用层</b><span>导航 · 音乐 · 语音助手 · 车控 · 视频 · 应用商店</span></div>
+      <div class="layer fw"><b>框架层</b><span>Android Automotive（CarService / Vehicle HAL）· QNX 仪表 HMI</span></div>
+      <div class="layer mw"><b>中间件</b><span>SOME/IP · DDS · CommonAPI · 以太网关 · OTA 客户端</span></div>
+      <div class="layer os"><b>系统层</b><span>Hypervisor（QNX Hypervisor / 黑莓 IVY）· Linux 内核 · RTOS（安全岛）</span></div>
+      <div class="layer hw"><b>硬件层</b><span>SoC · MCU · SerDes · A2B · 连接模组</span></div>
+    </div>
+
+    <div class="grid-3">
+      <article class="card">
+        <h3>为什么用虚拟化</h3>
+        <p>仪表要求「上电 2s 出图、绝不卡死」，Android 启动要 20s+。用 Hypervisor 把两者隔离：仪表跑 RTOS/QNX 独立启动，Android 崩了仪表还在。</p>
+      </article>
+      <article class="card">
+        <h3>关键设计</h3>
+        <ul class="tight">
+          <li>仪表与中控共享 GPU，按优先级分配</li>
+          <li>倒车影像走独立通路，绕开 Android 启动</li>
+          <li>语音常驻低功耗核，唤醒 ≤500ms</li>
+          <li>OTA 双分区 A/B，失败自动回滚</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>安全与诊断</h3>
+        <ul class="tight">
+          <li>安全岛监控 SoC 心跳，异常降级</li>
+          <li>关键信号 E2E 保护（ASIL-B）</li>
+          <li>预留 UDS / DoIP 诊断通道</li>
+          <li>日志分级落盘，支持远程抓取</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 开发计划 ============ -->
+  <section class="pane" id="pane-plan">
+    <div class="section-head">
+      <h2>开发计划</h2>
+      <p>产品定义 → 原型 → DV → PV → SOP；每一阶段都有对应的验证手段，台架测试是 DV 阶段的支撑。</p>
+    </div>
+
+    <div class="timeline">
+      <div class="phase"><span>M0</span><b>产品定义</b><em>需求 / 竞品 / 卖点</em><small>6 周</small></div>
+      <div class="phase"><span>M1</span><b>原型验证</b><em>EVT 板 + 基础 HMI</em><small>10 周</small></div>
+      <div class="phase"><span>M2</span><b>DV 设计验证</b><em>功能 / 老化 / 温循</em><small>16 周</small></div>
+      <div class="phase"><span>M3</span><b>PV 生产验证</b><em>产线节拍 / 一致性</em><small>8 周</small></div>
+      <div class="phase"><span>M4</span><b>SOP</b><em>量产交付</em><small>—</small></div>
+    </div>
+
+    <div class="grid-2">
+      <article class="card">
+        <h3>每阶段要验证什么</h3>
+        <table class="mini wide">
+          <tr><th>阶段</th><th>验证重点</th><th>手段</th></tr>
+          <tr><td>M1 原型</td><td>屏幕点亮、系统启动</td><td>手工 + 串口日志</td></tr>
+          <tr><td>M2 DV</td><td>功能 / 性能 / 稳定性</td><td><b>诊断台 + 台架</b></td></tr>
+          <tr><td>M3 PV</td><td>一致性与节拍</td><td>产线 EOL 工装</td></tr>
+          <tr><td>M4 售后</td><td>现场问题定位</td><td>诊断台 + 8D</td></tr>
+        </table>
+      </article>
+      <article class="card">
+        <h3>与诊断台架的关系</h3>
+        <p>产品定义里每一条「可验收指标」，都要在 DV 阶段被台架测出来：</p>
+        <ul class="tight">
+          <li>冷启动 ≤25s → 台架 ADB 打点 + 计时</li>
+          <li>倒车影像 ≤2.5s → NGX 抓帧计时</li>
+          <li>连续 72h 崩溃 0 → 老化循环</li>
+          <li>触摸 ≤100ms → 高速相机或日志打点</li>
+        </ul>
+        <p class="note">台架不是为了测而测，是把产品指标变成可重复的数字。</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>NEXUS C7 · 产品定义 v1.0</span>
+  <span>产品 → 架构 → 验证：指标先行，测试后置</span>
+</footer>
+
+<script src="product.js"></script>
+</body>
+</html>
