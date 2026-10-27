@@ -112,6 +112,8 @@ class ZlgDll:
         cfg.config.canfd.acc_mask = 0xFFFFFFFF
         cfg.config.canfd.mode = CANFD_ISO
 
+        # 键名与官方例程一致（0/ 前缀是通道号）
+        self.set_value("0/canfd_standard", "0")
         self.set_value(f"{channel}/canfd_abit_baud_rate", str(abit))
         self.set_value(f"{channel}/canfd_dbit_baud_rate", str(dbit))
         self.set_value(f"{channel}/filter_clear", "0")
@@ -120,6 +122,13 @@ class ZlgDll:
         if not self.ch:
             return False
         return self.dll.ZCAN_StartCAN(c_ulonglong(self.ch)) == 1
+
+    def receive_num(self) -> int:
+        """待接收帧数（CANFD 类型），先查数量再收，避免 ReceiveFD 阻塞。"""
+        try:
+            return int(self.dll.ZCAN_GetReceiveNum(c_ulonglong(self.ch), c_uint(ZCAN_TYPE_CANFD)))
+        except Exception:
+            return 0
 
     def transmit_fd(self, can_id: int, data: bytes, ext: bool, brs: bool = True) -> int:
         msg = TransmitFd()

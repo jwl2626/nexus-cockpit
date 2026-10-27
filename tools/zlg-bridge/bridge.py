@@ -267,7 +267,11 @@ class Bus:
         if self._dll is not None:
             while not self._stop.is_set():
                 try:
-                    for frame in self._dll.receive_fd(64, 100):
+                    pending = self._dll.receive_num()
+                    if pending <= 0:
+                        time.sleep(0.02)
+                        continue
+                    for frame in self._dll.receive_fd(min(pending, 64), 50):
                         self._emit(CanFrame(
                             time.time(), "rx", self._slot(), frame["id"], frame["data"],
                             frame["ext"], frame["fd"],
