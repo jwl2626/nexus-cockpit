@@ -1,0 +1,46 @@
+# ---------- 嵌套仓库：独立维护并已托管在 GitHub，不纳入本仓库 ----------
+fastbootCmds/
+
+# ---------- 构建 / 生成产物 ----------
+cockpit-test/report/
+cockpit-test/*.pptx.orig
+*.exe
+*.dll
+*.o
+*.obj
+*.log
+*.crdownload
+*.zip
+*.7z
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---------- Node ----------
+node_modules/
+*.min.js.map
+
+# ---------- 训练与运行产物 ----------
+mnist-torch/runs/
+mnist-torch/data/
+*.pt
+*.pth
+*.onnx
+
+# ---------- 诊断工具的合成数据（可由脚本重新生成） ----------
+cockpit-diag/data/synthetic.json
+
+# ---------- 临时文件 ----------
+.dsh-office-*/
+.tmp*/
+*.tmp
+
+# ---------- 系统 / 编辑器 ----------
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+*.suo

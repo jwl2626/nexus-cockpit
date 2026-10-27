@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "comment": "规则引擎：确定性知识。规则和模型不是二选一，规则负责'铁证'，模型负责'像不像'。",
+  "rules": [
+    {
+      "id": "CAN_BUS_SILENT",
+      "when": [{"check": "can.heartbeat", "status": ["timeout", "fail"]}],
+      "vote": "CAN",
+      "weight": 3.0,
+      "message": "CAN 心跳报文缺失，整车没有收到座舱的状态帧",
+      "advice": ["查 CAN 线束与终端电阻（应为 60Ω）", "确认波特率与整车一致（500k/250k）", "查座舱 CAN 收发器供电"]
+    },
+    {
+      "id": "CAN_UDS_NO_REPLY",
+      "when": [{"check": "can.uds_session", "status": ["timeout", "fail"]}],
+      "vote": "CAN",
+      "weight": 2.5,
+      "message": "UDS 会话保持请求（3E 00）没有正响应",
+      "advice": ["确认诊断 ID 与目标地址映射", "查座舱诊断栈是否启动（进程/服务）"]
+    },
+    {
+      "id": "ETH_NO_LINK",
+      "when": [{"check": "eth.gateway_ping", "status": ["timeout", "fail"]}],
+      "vote": "ETH",
+      "weight": 3.0,
+      "message": "到车内网关完全不通",
+      "advice": ["查网线与连接器", "确认 IP/掩码/网关配置", "查交换芯片与 PHY 链路状态（ethtool）"]
+    },
+    {
+      "id": "ETH_DOIP_NO_REPLY",
+      "when": [{"check": "eth.doip_udp", "status": ["timeout", "fail"]}],
+      "vote": "ETH",
+      "weight": 2.5,
+      "message": "DoIP 诊断端口（13400）无回包",
+      "advice": ["确认 DoIP 服务已启动", "查防火墙/端口过滤", "确认车辆 DoIP 逻辑地址配置"]
+    },
+    {
+      "id": "SYS_NOT_BOOTED",
+      "when": [
+        {"check": "adb.boot_completed", "status": ["fail"]},
+        {"check": "adb.get_state", "status": ["ok"]}
+      ],
+      "vote": "SYS",
+      "weight": 3.0,
+      "message": "ADB 连得上但系统没走完开机，卡在启动阶段",
+      "advice": ["抓 logcat / dmesg 看卡在哪个服务", "查最近一次 OTA 与分区校验结果", "确认是否进入 recovery"]
+    },
+    {
+      "id": "ADB_UNREACHABLE",
+      "when": [{"check": "adb.get_state", "status": ["timeout", "fail"]}],
+      "vote": "SYS",
+      "weight": 2.5,
+      "message": "ADB 无响应，可能是 adbd 异常或系统未起",
+      "advice": ["改用串口/以太网看内核日志", "确认 USB 口供电与数据线", "尝试重新上电并观察启动时序"]
+    },
+    {
+      "id": "DISPLAY_SERVICE_BAD",
+      "when": [{"check": "adb.display", "status": ["fail", "timeout"]}],
+      "vote": "DISPLAY",
+      "weight": 2.5,
+      "message": "显示合成/显示服务异常",
+      "advice": ["查 SurfaceFlinger 日志与 GPU 驱动", "确认屏线连接与 EDID", "对比同批次屏幕是否集中出现"]
+    },
+    {
+      "id": "AUDIO_SERVICE_BAD",
+      "when": [{"check": "adb.audio", "status": ["fail", "timeout"]}],
+      "vote": "AUDIO",
+      "weight": 2.5,
+      "message": "音频服务（AudioFlinger）异常",
+      "advice": ["查音频 HAL 与功放供电", "确认喇叭/麦克风线束", "查音频路由配置"]
+    },
+    {
+      "id": "CRASH_PRESENT",
+      "when": [{"check": "adb.crash_log", "status": ["fail"]}],
+      "vote": "SYS",
+      "weight": 1.0,
+      "message": "crash buffer 里有 FATAL EXCEPTION",
+      "advice": ["提取崩溃栈并归类", "确认是系统应用还是第三方应用"]
+    }
+  ]
+}

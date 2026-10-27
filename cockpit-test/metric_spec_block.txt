@@ -1,0 +1,41 @@
+  const METRIC_SPEC = {
+    soc: [['/proc/stat', '> 85% 持续 60s', '5s', 10], ['scaling_cur_freq', '< 50% 标称且非温控', '5s', 10], ['thermal_zone', '≥ 95°C', '5s', 20]],
+    ddr: [['/proc/meminfo', '> 90% 持续 5min', '10s', 10], ['ECC 计数', 'CE > 10/24h', '60s', 25], ['PMU 带宽', '> 90% 峰值', '5s', 10]],
+    storage: [['statvfs /data', '< 5%', '60s', 10], ['UFS health', '新增 ≥ 1', '30min', 20], ['/proc/diskstats', 'P99 > 200ms', '5min', 15]],
+    rf: [['cmd wifi', '< -80dBm 持续 1min', '10s', 10], ['dumpsys telephony', '< -115dBm', '10s', 15], ['系统重连统计', '> 3 次/5min', '5min', 10]],
+    display: [['dumpsys display / DRM', '任一屏离线 > 5s', '10s', 25], ['SerDes 寄存器', '失锁或重训 > 2 次/min', '5s', 20], ['解串器温度', '> 85°C', '30s', 10]],
+    audio: [['dumpsys audio', '服务异常/重启', '30s', 20], ['A2B 节点寄存器', '任一节点掉线', '10s', 25], ['功放 I2C 诊断', '过温 / 过流', '30s', 20]],
+    peripherals: [['video 节点 + HAL', '任一路掉线', '10s', 20], ['HAL 帧统计', '< 20fps 持续 10s', '5s', 15], ['SerDes 误码', '持续增长', '5s', 20]],
+    mcu: [['串口 / SPI 心跳', '丢 ≥ 2 拍', '1s', 25], ['CAN 驱动统计', '> 85% 或错误帧', '5s', 15], ['UDS 19 02', '新增 DTC', '5min', 15]],
+    stability: [['boot reason', '非计划重启', '每次启动', 30], ['logcat -b crash', '新增即记', '60s', 20], ['lowmemorykiller', '杀进程事件', '5min', 10]],
+    power: [['PMIC ADC', '< 9V 或 > 16V', '1s', 25], ['thermal_zone', '≥ 95°C', '5s', 20], ['cpufreq 事件', '非预期降频', '5s', 10]],
+    ota: [['CAN/DoIP 3E 00', '超时即告警', '30s', 20], ['getprop 分区版本', '不一致即告警', '每次启动', 15], ['升级记录', '< 95% 告警', '每次 OTA', 25]],
+    timesync: [['pmc / gPTP', '> 100µs 告警', '10s', 20], ['系统时钟差分', '单次 > 1s 告警', '10s', 25], ['网关 ping 统计', '> 5% 告警', '60s', 10]]
+  };
+  CDC_MODULES.forEach((module) => {
+    const spec = METRIC_SPEC[module.id];
+    if (!spec) return;
+    module.cardMetrics = module.cardMetrics.map((metric, index) =>
+      spec[index]
+        ? { ...metric, source: spec[index][0], threshold: spec[index][1], period: spec[index][2], weight: spec[index][3] }
+        : metric
+    );
+  });
+
+  function monitorSpecPanel(module) {
+    const rows = (module.cardMetrics || []).filter((metric) => metric.source);
+    if (!rows.length) return '';
+    return panelHTML('监控与诊断方案', 'scan', `
+      <div class="table-scroll"><table class="data-table" style="min-width:640px">
+        <thead><tr><th>指标</th><th>采集源</th><th>周期</th><th>告警阈值</th><th>权重</th></tr></thead>
+        <tbody>${rows.map((metric) => `
+          <tr>
+            <td class="strong">${escapeHtml(metric.label)}</td>
+            <td class="mono">${escapeHtml(metric.source)}</td>
+            <td class="mono">${escapeHtml(metric.period || '—')}</td>
+            <td>${escapeHtml(metric.threshold || '—')}</td>
+            <td class="mono">${metric.weight ?? '—'}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>
+    `, { span2: true, sub: 'SOURCE / PERIOD / THRESHOLD / WEIGHT' })}
+  }

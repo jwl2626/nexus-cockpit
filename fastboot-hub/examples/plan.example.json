@@ -1,0 +1,28 @@
+{
+  "name": "example-factory",
+  "steps": [
+    {
+      "action": "flash",
+      "partition": "boot",
+      "image": "images/boot.img"
+    },
+    {
+      "action": "flash",
+      "partition": "vendor_boot",
+      "image": "images/vendor_boot.img"
+    },
+    {
+      "action": "flash",
+      "partition": "vbmeta",
+      "image": "images/vbmeta.img"
+    },
+    {
+      "action": "erase",
+      "partition": "misc"
+    },
+    {
+      "action": "reboot",
+      "target": "bootloader"
+    }
+  ]
+}

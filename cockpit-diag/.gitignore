@@ -1,0 +1,12 @@
+# 采集数据：体积大、每台机器不同，不进版本库
+data/*.json
+!data/.gitkeep
+
+# 模型是训练产物，可重训
+models/*.npz
+
+# 报告可重生成
+reports/*.md
+
+__pycache__/
+*.pyc

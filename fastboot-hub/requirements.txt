@@ -1,0 +1,2 @@
+# fbhub has no third-party runtime dependencies.
+# It uses Python's standard library plus the Windows WinUSB / SetupAPI DLLs.

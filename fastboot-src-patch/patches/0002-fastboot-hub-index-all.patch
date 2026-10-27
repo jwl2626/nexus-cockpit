@@ -1,0 +1,106 @@
+diff --git a/fastboot/fastboot.cpp b/fastboot/fastboot.cpp
+--- a/fastboot/fastboot.cpp
++++ b/fastboot/fastboot.cpp
+@@ -48,5 +48,6 @@
+ #include <unistd.h>
+ 
++#include <algorithm>
+ #include <chrono>
+ #include <functional>
+ #include <iostream>
+@@ -79,5 +80,6 @@
+ #include "fastboot_driver.h"
+ #include "fastboot_driver_interface.h"
++#include "fastboot_multi.h"
+ #include "fs.h"
+ #include "storage.h"
+ #include "task.h"
+@@ -100,6 +102,9 @@
+ static const char* serial = nullptr;
+ 
+ static bool g_long_listing = false;
++static bool g_all_devices = false;
++static int g_usb_hub = -1;
++static int g_usb_index = -1;
+ // Don't resparse files in too-big chunks.
+ // libsparse will support INT_MAX, but this results in large allocations, so
+ // let's keep it at 1GB to avoid memory pressure on the host.
+@@ -252,6 +257,10 @@
+     if (local_serial && (strcmp(local_serial, info->serial_number) != 0 &&
+                          strcmp(local_serial, info->device_path) != 0))
+         return -1;
++    if ((g_usb_hub >= 0 || g_usb_index >= 0) &&
++        !fastboot_multi::PathMatches(info->device_path, g_usb_hub, g_usb_index)) {
++        return -1;
++    }
+     return 0;
+ }
+ 
+@@ -630,6 +639,9 @@
+             " -w                         Wipe userdata.\n"
+             " -s SERIAL                  Specify a USB device.\n"
+             " -s tcp|udp:HOST[:PORT]     Specify a network device.\n"
++            " --hub HUB                  Select by upstream hub port number.\n"
++            " --index INDEX              Select by final port index.\n"
++            " --all                      Run the command on every fastboot device in parallel.\n"
+             " -S SIZE[K|M|G]             Break into sparse files no larger than SIZE.\n"
+             " --force                    Force a flash operation that may be unsafe.\n"
+             " --slot SLOT                Use SLOT; 'all' for both slots, 'other' for\n"
+@@ -2239,6 +2251,7 @@
+ int FastBootTool::Main(int argc, char* argv[]) {
+     android::base::InitLogging(argv, FastbootLogger, FastbootAborter);
+     std::unique_ptr<FlashingPlan> fp = std::make_unique<FlashingPlan>();
++    std::vector<std::string> original_args(argv + 1, argv + argc);
+ 
+     int longindex;
+     std::string next_active;
+@@ -2253,5 +2266,8 @@
+     const struct option longopts[] = {{"base", required_argument, 0, 0},
+                                       {"cmdline", required_argument, 0, 0},
++                                      {"all", no_argument, 0, 0},
++                                      {"hub", required_argument, 0, 0},
++                                      {"index", required_argument, 0, 0},
+                                       {"disable-verification", no_argument, 0, 0},
+                                       {"disable-verity", no_argument, 0, 0},
+                                       {"disable-super-optimization", no_argument, 0, 0},
+@@ -2286,6 +2302,14 @@
+         if (c == 0) {
+             std::string name{longopts[longindex].name};
+-            if (name == "base") {
++            if (name == "all") {
++                g_all_devices = true;
++            } else if (name == "hub") {
++                g_usb_hub = atoi(optarg);
++                if (g_usb_hub < 0) die("invalid --hub value");
++            } else if (name == "index") {
++                g_usb_index = atoi(optarg);
++                if (g_usb_index < 0) die("invalid --index value");
++            } else if (name == "base") {
+                 g_base_addr = strtoul(optarg, 0, 16);
+             } else if (name == "cmdline") {
+                 g_cmdline = optarg;
+@@ -2400,7 +2425,24 @@
+     if (argc > 0 && !strcmp(*argv, "help")) {
+         return show_help();
+     }
+ 
++    if (g_all_devices) {
++        if (serial != nullptr) {
++            syntax_error("--all cannot be combined with -s");
++        }
++        auto paths = fastboot_multi::ListUsbPaths();
++        if (g_usb_hub >= 0 || g_usb_index >= 0) {
++            paths.erase(std::remove_if(paths.begin(), paths.end(),
++                                       [](const std::string& path) {
++                                           return !fastboot_multi::PathMatches(
++                                               path.c_str(), g_usb_hub, g_usb_index);
++                                       }),
++                        paths.end());
++        }
++        if (paths.empty()) die("no fastboot devices found");
++        return fastboot_multi::RunAll(original_args, paths);
++    }
++
+     std::unique_ptr<Transport> transport = open_device();
+     if (!transport) {
+         return 1;

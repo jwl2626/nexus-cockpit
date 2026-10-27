@@ -1,0 +1,13 @@
+# MNIST 原始数据太大，不提交
+data/
+
+# 训练产物
+runs/
+
+# 导出模型
+*.pt
+
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/

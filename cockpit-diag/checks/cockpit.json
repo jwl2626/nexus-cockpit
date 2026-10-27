@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "comment": "座舱诊断检查项清单。改这里就能改诊断范围，训练代码不用动。真实指令到手后替换 args/target 即可。",
+  "channels": {
+    "adb": {"exe": "adb"},
+    "fastboot": {"exe": "fastboot"},
+    "can": {"interface": "zlgcan", "channel": 0, "bitrate": 500000},
+    "ethernet": {}
+  },
+  "checks": [
+    {
+      "id": "adb.get_state",
+      "channel": "adb",
+      "title": "ADB 能看到设备",
+      "weight": 3,
+      "args": ["get-state"],
+      "expect_contains": "device",
+      "timeout_s": 8
+    },
+    {
+      "id": "adb.boot_completed",
+      "channel": "adb",
+      "title": "系统已完成开机",
+      "weight": 3,
+      "args": ["shell", "getprop", "sys.boot_completed"],
+      "expect_contains": "1",
+      "timeout_s": 10
+    },
+    {
+      "id": "adb.display",
+      "channel": "adb",
+      "title": "显示服务正常",
+      "weight": 2,
+      "args": ["shell", "dumpsys", "display"],
+      "expect_contains": "Display Devices",
+      "timeout_s": 12
+    },
+    {
+      "id": "adb.audio",
+      "channel": "adb",
+      "title": "音频服务正常",
+      "weight": 2,
+      "args": ["shell", "dumpsys", "audio"],
+      "expect_contains": "AudioFlinger",
+      "timeout_s": 12
+    },
+    {
+      "id": "adb.storage",
+      "channel": "adb",
+      "title": "data 分区可读写挂载",
+      "weight": 1,
+      "args": ["shell", "df", "/data"],
+      "expect_contains": "/data",
+      "timeout_s": 10
+    },
+    {
+      "id": "adb.crash_log",
+      "channel": "adb",
+      "title": "崩溃日志为空",
+      "weight": 1,
+      "args": ["shell", "logcat", "-d", "-b", "crash", "-t", "100"],
+      "expect_missing": "FATAL EXCEPTION",
+      "timeout_s": 12
+    },
+    {
+      "id": "fastboot.product",
+      "channel": "fastboot",
+      "title": "bootloader 返回机型",
+      "weight": 1,
+      "args": ["getvar", "product"],
+      "expect_contains": "product",
+      "timeout_s": 10
+    },
+    {
+      "id": "fastboot.slot",
+      "channel": "fastboot",
+      "title": "bootloader 返回 slot",
+      "weight": 1,
+      "args": ["getvar", "current-slot"],
+      "expect_contains": "current-slot",
+      "timeout_s": 10
+    },
+    {
+      "id": "can.heartbeat",
+      "channel": "can",
+      "title": "CAN 心跳报文在发",
+      "weight": 3,
+      "expect_ids": ["0x18FF0102"],
+      "listen_ms": 500,
+      "timeout_s": 6
+    },
+    {
+      "id": "can.uds_session",
+      "channel": "can",
+      "title": "UDS 会话保持有响应",
+      "weight": 3,
+      "send": [{"id": "0x18DA0BF1", "data": "3E00"}],
+      "expect_ids": ["0x18DAF10B"],
+      "listen_ms": 400,
+      "timeout_s": 6
+    },
+    {
+      "id": "eth.gateway_ping",
+      "channel": "ethernet",
+      "title": "车内网关 ping 得通",
+      "weight": 2,
+      "mode": "ping",
+      "target": "192.168.1.1",
+      "count": 4,
+      "timeout_ms": 1000,
+      "max_loss_pct": 20,
+      "timeout_s": 30
+    },
+    {
+      "id": "eth.doip_udp",
+      "channel": "ethernet",
+      "title": "DoIP 诊断端口有回包",
+      "weight": 3,
+      "mode": "udp",
+      "target": "192.168.1.10",
+      "port": 13400,
+      "payload_hex": "0201",
+      "expect_reply": true,
+      "timeout_s": 3
+    },
+    {
+      "id": "eth.hmi_service",
+      "channel": "ethernet",
+      "title": "HMI 服务端口可连接",
+      "weight": 1,
+      "mode": "tcp",
+      "target": "192.168.1.20",
+      "port": 8080,
+      "max_ms": 1500,
+      "timeout_s": 5
+    }
+  ]
+}

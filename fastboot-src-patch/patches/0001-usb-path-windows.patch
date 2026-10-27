@@ -1,0 +1,85 @@
+diff --git a/fastboot/Android.bp b/fastboot/Android.bp
+--- a/fastboot/Android.bp
++++ b/fastboot/Android.bp
+@@ -69,7 +69,9 @@
+         windows: {
+-            srcs: ["usb_windows.cpp"],
++            srcs: ["usb_windows.cpp", "usb_path_windows.cpp"],
+ 
+             host_ldlibs: [
+                 "-lws2_32",
++                "-lsetupapi",
++                "-lcfgmgr32",
+             ],
+         },
+@@ -135,7 +135,11 @@
+         windows: {
+             enabled: true,
+ 
+-            host_ldlibs: ["-lws2_32"],
++            host_ldlibs: [
++                "-lws2_32",
++                "-lsetupapi",
++                "-lcfgmgr32",
++            ],
+         },
+         not_windows: {
+             static_libs: [
+@@ -174,6 +178,7 @@
+     srcs: [
+         "bootimg_utils.cpp",
+         "fastboot_driver.cpp",
++        "fastboot_multi.cpp",
+         "fastboot.cpp",
+         "filesystem.cpp",
+         "fs.cpp",
+@@ -189,7 +194,7 @@
+     target: {
+         windows: {
+-            srcs: ["usb_windows.cpp"],
++            srcs: ["usb_windows.cpp", "usb_path_windows.cpp"],
+ 
+             include_dirs: ["development/host/windows/usb/api"],
+         },
+--- a/fastboot/usb_windows.cpp
++++ b/fastboot/usb_windows.cpp
+@@ -40,6 +40,7 @@
+ #include <string>
+ 
+ #include "usb.h"
++#include "usb_path_windows.h"
+ 
+ //#define TRACE_USB 1
+ #if TRACE_USB
+@@ -59,6 +60,9 @@
+ 
+     /// Interface name
+     std::string interface_name;
++
++    /// Wide device interface path, used to query the Windows USB topology.
++    std::wstring interface_name_w;
+ };
+ 
+ class WindowsUsbTransport : public UsbTransport {
+@@ -76,7 +80,8 @@
+ 
+ std::unique_ptr<usb_handle> do_usb_open(const wchar_t* interface_name) {
+     // Allocate our handle
+     std::unique_ptr<usb_handle> ret(new usb_handle);
++    ret->interface_name_w = interface_name;
+ 
+     // Create interface.
+     ret->adb_interface = AdbCreateInterfaceByName(interface_name);
+@@ -300,7 +305,12 @@
+     }
+     info.interface[0] = 0;
+ 
+     info.device_path[0] = 0;
++    if (!handle->interface_name_w.empty()) {
++        fastboot::UsbPathFromInterfaceName(handle->interface_name_w.c_str(),
++                                           info.device_path,
++                                           sizeof(info.device_path));
++    }
+ 
+     if (callback(&info) == 0) {
+         DBG("skipping device %x:%x, not selected by callback\n", device_desc.idVendor,
