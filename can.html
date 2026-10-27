@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>周立功 CAN 工具 · NEXUS COCKPIT</title>
+<link rel="stylesheet" href="can.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <a class="back" href="index.html" title="返回诊断台">←</a>
+    <div>
+      <div class="brand-name">周立功 CAN 工具</div>
+      <div class="brand-sub">ZLG · USBCANFD-200U / CANFDNET-400U-TCP</div>
+    </div>
+  </div>
+  <div class="top-status">
+    <span class="pill" id="bridgePill">桥接未连接</span>
+    <span class="pill" id="busPill">总线空闲</span>
+    <span class="pill" id="modePill">—</span>
+  </div>
+</header>
+
+<div class="bridge-bar">
+  <label>桥接地址</label>
+  <input id="bridgeUrl" value="http://127.0.0.1:8790" spellcheck="false">
+  <button id="bridgeConnect" class="btn">连接桥接</button>
+  <span class="hint">先运行 <code>python tools/zlg-bridge/bridge.py --sim</code>（无硬件时用模拟模式）</span>
+</div>
+
+<main class="layout">
+  <section class="panel">
+    <h2>设备与通道</h2>
+    <div class="form">
+      <label>设备类型
+        <select id="devType">
+          <option value="USBCANFD-200U">USBCANFD-200U（USB）</option>
+          <option value="CANFDNET-400U-TCP">CANFDNET-400U-TCP（以太网）</option>
+        </select>
+      </label>
+      <label id="ipRow" hidden>IP 地址
+        <input id="devIp" value="192.168.1.100" spellcheck="false">
+      </label>
+      <label>通道
+        <select id="channel"><option value="0">CH0</option><option value="1">CH1</option></select>
+      </label>
+      <label>仲裁域波特率
+        <select id="nominal">
+          <option value="500000">500 kbps</option>
+          <option value="250000">250 kbps</option>
+          <option value="1000000">1 Mbps</option>
+        </select>
+      </label>
+      <label>数据域波特率（FD）
+        <select id="dataRate">
+          <option value="2000000">2 Mbps</option>
+          <option value="5000000">5 Mbps</option>
+          <option value="1000000">1 Mbps</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="fdMode" checked> CAN FD 模式</label>
+    </div>
+    <div class="row">
+      <button id="btnOpen" class="btn primary">连接设备</button>
+      <button id="btnClose" class="btn" disabled>断开</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>发送报文</h2>
+    <div class="form">
+      <label>帧 ID（hex）
+        <input id="txId" value="0x18DA0BF1" spellcheck="false">
+      </label>
+      <label class="check"><input type="checkbox" id="txExt" checked> 扩展帧</label>
+      <label>数据（hex）
+        <input id="txData" value="3E00" spellcheck="false">
+      </label>
+      <label>周期发送（ms，0=单次）
+        <input id="txPeriod" type="number" value="0" min="0" step="10">
+      </label>
+    </div>
+    <div class="row">
+      <button id="btnSend" class="btn primary" disabled>发送</button>
+      <button class="btn quick" data-id="0x18DA0BF1" data-data="3E00">UDS 3E 00</button>
+      <button class="btn quick" data-id="0x18DA0BF1" data-data="1003">10 03</button>
+      <button class="btn quick" data-id="0x18DA0BF1" data-data="22F190">22 F1 90</button>
+      <button class="btn quick" data-id="0x18FF0102" data-data="0102030405060708">心跳帧</button>
+    </div>
+    <p class="note">提示：座舱诊断常用 0x18DA0BF1（请求）/ 0x18DAF10B（响应），扩展帧，500 kbps。</p>
+  </section>
+
+  <section class="panel monitor">
+    <div class="monitor-head">
+      <h2>报文监控</h2>
+      <div class="monitor-tools">
+        <input id="filter" placeholder="过滤 ID / 数据（支持 0x18DA 前缀）" spellcheck="false">
+        <button id="btnPause" class="btn">暂停</button>
+        <button id="btnClear" class="btn">清空</button>
+        <button id="btnExport" class="btn">导出 CSV</button>
+      </div>
+    </div>
+    <div class="stats">
+      <span>接收 <b id="rxCount">0</b></span>
+      <span>发送 <b id="txCount">0</b></span>
+      <span>速率 <b id="rateCount">0</b>/s</span>
+      <span>最后帧 <b id="lastFrame">—</b></span>
+    </div>
+    <div class="table-wrap">
+      <table class="frame-table">
+        <thead>
+          <tr><th>时间</th><th>方向</th><th>CH</th><th>ID</th><th>类型</th><th>DLC</th><th>数据</th></tr>
+        </thead>
+        <tbody id="frameBody">
+          <tr class="empty"><td colspan="7">尚未收到报文</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>NEXUS COCKPIT · CAN 调试工具</span>
+  <span>不支持浏览器直连硬件：需本地 <code>zlg-bridge</code> 进程加载 zlgcan.dll</span>
+</footer>
+
+<script src="can.js"></script>
+</body>
+</html>
