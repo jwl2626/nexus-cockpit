@@ -87,6 +87,7 @@ class Bus:
         self._reader = None
         self._sim = None
         self._bus = None
+        self._dll = None
 
     # ---------- 连接 ----------
     def open(self, cfg: dict):
@@ -119,6 +120,12 @@ class Bus:
 
     def close(self, silent=False):
         self._stop.set()
+        if self._dll is not None:
+            try:
+                self._dll.close_device()
+            except Exception:
+                pass
+            self._dll = None
         if self._bus is not None:
             try:
                 self._bus.shutdown()
@@ -166,6 +173,11 @@ class Bus:
         if dll_dir is None:
             self._log("未找到 zlgcan.dll：请安装周立功 CAN 驱动，或设置环境变量 ZLG_DLL_DIR 指向 DLL 目录")
             return False
+
+        # TCP 型设备：需要 OpenDevice 后用 ZCAN_SetValue 写 IP/端口，
+        # 高层包 zlgcan 不暴露句柄，这里直接走 ctypes
+        if name.endswith("-TCP"):
+            return self._open_ctypes(name, cfg, dll_dir)
         bitrate = int(cfg.get("nominal", 500000))
         dbitrate = int(cfg.get("data", 2000000)) if cfg.get("fd") else None
         ch = int(cfg.get("channel", 0))
@@ -191,7 +203,52 @@ class Bus:
         self._log(f"硬件已连接：{name} CH{ch}{addr}")
         return True
 
+    def _open_ctypes(self, name: str, cfg: dict, dll_dir: str) -> bool:
+        try:
+            from zlg_ctypes import ZCAN_CANFDNET_400U_TCP, ZCAN_USBCANFD_200U, ZlgDll
+        except Exception as exc:
+            self._log(f"加载 zlg_ctypes 失败：{exc}")
+            return False
+
+        try:
+            dll = ZlgDll(dll_dir)
+        except Exception as exc:
+            self._log(f"加载 zlgcan.dll 失败：{exc}")
+            return False
+
+        dev_type = ZCAN_CANFDNET_400U_TCP if name.endswith("-TCP") else ZCAN_USBCANFD_200U
+        if not dll.open_device(dev_type, int(cfg.get("device_index", 0))):
+            self._log(f"打开设备失败（device_type={dev_type}），检查型号 / 网络 / 驱动")
+            return False
+
+        ip = str(cfg.get("ip") or "").strip()
+        port = str(cfg.get("port") or 8000)
+        if ip:
+            # 设备侧参数：路径形如 "通道/参数名"，以官方手册为准
+            for key, value in (("0/ip", ip), ("0/port", port), ("0/tcp_port", port)):
+                rc = dll.set_value(key, value)
+                self._log(f"SetValue {key}={value} -> {rc}")
+
+        ch = int(cfg.get("channel", 0))
+        abit = int(cfg.get("nominal", 500000))
+        dbit = int(cfg.get("data", 2000000)) if cfg.get("fd") else 0
+        if not dll.init_canfd(ch, abit, dbit):
+            self._log("初始化 / 启动通道失败")
+            dll.close_device()
+            return False
+
+        self._dll = dll
+        self._log(f"硬件已连接（ctypes）：{name} CH{ch} @ {ip}:{port}")
+        return True
+
     def _hw_send(self, can_id, data, ext, fd) -> bool:
+        if self._dll is not None:
+            try:
+                payload = bytes.fromhex(data)
+                return self._dll.transmit_fd(can_id, payload, ext, brs=fd) == 1
+            except Exception as exc:
+                self._log(f"发送失败（ctypes）：{exc}")
+                return False
         try:
             import can
             msg = can.Message(
@@ -207,6 +264,19 @@ class Bus:
             return False
 
     def _read_loop(self):
+        if self._dll is not None:
+            while not self._stop.is_set():
+                try:
+                    for frame in self._dll.receive_fd(64, 100):
+                        self._emit(CanFrame(
+                            time.time(), "rx", self._slot(), frame["id"], frame["data"],
+                            frame["ext"], frame["fd"],
+                        ))
+                except Exception as exc:
+                    self._log(f"接收异常（ctypes）：{exc}")
+                    time.sleep(0.5)
+            return
+
         while not self._stop.is_set():
             try:
                 msg = self._bus.recv(timeout=0.2)
