@@ -1,0 +1,49 @@
+/* 台架页专用样式，复用 can.css 的 token 与基础组件 */
+
+.layout { grid-template-columns: 1fr 1fr; align-items: start; }
+.panel.wide { grid-column: 1 / -1; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.panel-head h2 { margin: 0; }
+.stress-tools { display: flex; align-items: center; gap: 8px; }
+.stress-tools label { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.stress-tools select {
+  padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line);
+  background: #0b1224; color: var(--ink); font-family: var(--mono); font-size: 12px;
+}
+
+.device-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+.device {
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.device-head { display: flex; align-items: center; gap: 8px; }
+.device-name { font-size: 13px; font-weight: 600; }
+.device-sub { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+.device-body { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; gap: 8px; }
+.device-detail { font-size: 10.5px; color: var(--muted); line-height: 1.5; flex: 1; min-height: 16px; }
+.device .btn { padding: 5px 10px; font-size: 11px; }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; flex: 0 0 auto; }
+.dot.ok { background: var(--ok); box-shadow: 0 0 6px rgba(59, 167, 118, 0.7); }
+.dot.fail { background: #d94a4a; box-shadow: 0 0 6px rgba(217, 74, 74, 0.7); }
+.dot.busy { background: var(--warn); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+.stress-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.stress {
+  border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.stress-title { display: flex; align-items: center; justify-content: space-between; }
+.stress-title b { font-size: 13px; }
+.stress-title span { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.stress-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; margin: 10px 0 8px; }
+.stress-metrics div { font-size: 10.5px; color: var(--muted); }
+.stress-metrics b { display: block; font-family: var(--mono); font-size: 13px; color: var(--ink); margin-top: 2px; }
+.bar { height: 5px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0%; background: var(--accent); transition: width 0.3s; }
+.stress-foot { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 6px; font-family: var(--mono); }
+
+.table-wrap.short { max-height: 260px; }
+.log-fail { color: #ff9a9a; }
+.log-ok { color: #9ae6b4; }

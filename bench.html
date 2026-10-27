@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台架测试台 · NEXUS COCKPIT</title>
+<link rel="stylesheet" href="can.css">
+<link rel="stylesheet" href="bench.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <a class="back" href="index.html" title="返回诊断台">←</a>
+    <div>
+      <div class="brand-name">台架测试台</div>
+      <div class="brand-sub">BENCH · 自环回 / 应力 / 老化 · 温循</div>
+    </div>
+  </div>
+  <div class="top-status">
+    <span class="pill" id="bridgePill">桥接未连接</span>
+    <span class="pill" id="runPill">空闲</span>
+    <span class="pill" id="modePill">—</span>
+  </div>
+</header>
+
+<div class="bridge-bar">
+  <label>桥接地址</label>
+  <input id="bridgeUrl" value="http://127.0.0.1:8791" spellcheck="false">
+  <button id="bridgeConnect" class="btn">连接桥接</button>
+  <span class="hint">先运行 <code>python tools/bench-bridge/bridge.py --sim</code>；无硬件时用模拟模式</span>
+</div>
+
+<main class="layout">
+  <section class="panel">
+    <div class="panel-head">
+      <h2>外设自检</h2>
+      <button id="btnSelfAll" class="btn primary">全部自检</button>
+    </div>
+    <p class="note">外设只验证「能否打开 / 链路是否正常」，不做深度测试。</p>
+    <div id="deviceGrid" class="device-grid"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>老化 / 温循 · 应力测试</h2>
+      <div class="stress-tools">
+        <label>时长
+          <select id="duration">
+            <option value="60">1 分钟</option>
+            <option value="600">10 分钟</option>
+            <option value="3600">1 小时</option>
+            <option value="28800">8 小时</option>
+            <option value="86400">24 小时</option>
+          </select>
+        </label>
+        <button id="btnStressStart" class="btn primary">开始</button>
+        <button id="btnStressStop" class="btn" disabled>停止</button>
+      </div>
+    </div>
+    <p class="note">SOC / DDR / UFS 三个核心件跑自环回 + 高应力；判据：无重启、无 UE、无 IO 错误、频率与延迟在阈值内。</p>
+    <div id="stressGrid" class="stress-grid"></div>
+  </section>
+
+  <section class="panel wide">
+    <div class="panel-head">
+      <h2>执行记录</h2>
+      <div class="monitor-tools">
+        <button id="btnClearLog" class="btn">清空</button>
+        <button id="btnExport" class="btn">导出 CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap short">
+      <table class="frame-table">
+        <thead><tr><th>时间</th><th>项</th><th>结果</th><th>详情</th></tr></thead>
+        <tbody id="logBody"><tr class="empty"><td colspan="4">尚未执行</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>NEXUS COCKPIT · 台架测试台</span>
+  <span>本页只做「打开 / 自环回 / 应力」，深度诊断见主诊断台</span>
+</footer>
+
+<script src="bench.js"></script>
+</body>
+</html>
