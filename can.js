@@ -15,6 +15,26 @@
   };
 
   const MAX_ROWS = 500;
+  const CHANNEL_COUNT = {
+    'USBCANFD-200U': 2,
+    'USBCANFD-100U': 1,
+    'USBCANFD-400U': 2,
+    'CANFDNET-400U-TCP': 4,
+    'CANFDNET-200U-TCP': 2,
+  };
+
+  function syncDeviceUi() {
+    const type = el('devType').value;
+    const isTcp = type.includes('TCP');
+    el('ipRow').hidden = !isTcp;
+    el('portRow').hidden = !isTcp;
+
+    const count = CHANNEL_COUNT[type] || 2;
+    const select = el('channel');
+    const keep = Number(select.value);
+    select.innerHTML = Array.from({ length: count }, (_, i) => `<option value="${i}">CH${i}</option>`).join('');
+    if (keep < count) select.value = String(keep);
+  }
 
   function setPill(node, text, cls) {
     node.textContent = text;
@@ -116,6 +136,7 @@
     const cfg = {
       type,
       ip: el('devIp').value,
+      port: Number(el('devPort').value),
       channel: Number(el('channel').value),
       nominal: Number(el('nominal').value),
       data: Number(el('dataRate').value),
@@ -197,9 +218,8 @@
       el('frameBody').innerHTML = '<tr class="empty"><td colspan="7">尚未收到报文</td></tr>';
     });
     el('btnExport').addEventListener('click', exportCsv);
-    el('devType').addEventListener('change', () => {
-      el('ipRow').hidden = el('devType').value !== 'CANFDNET-400U-TCP';
-    });
+    el('devType').addEventListener('change', syncDeviceUi);
+    syncDeviceUi();
     document.querySelectorAll('.btn.quick').forEach((btn) => {
       btn.addEventListener('click', () => {
         el('txId').value = btn.dataset.id;

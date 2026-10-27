@@ -10,10 +10,10 @@ can.html  ──HTTP/SSE──▶  bridge.py  ──ctypes──▶  zlgcan.dll 
 
 ## 支持设备
 
-| 型号 | 接口 | 说明 |
-| --- | --- | --- |
-| USBCANFD-200U | USB | 需装周立功官方驱动 + zlgcan.dll |
-| CANFDNET-400U-TCP | 以太网 | 同一 DLL，按 IP 寻址 |
+| 型号 | 接口 | 通道 | 说明 |
+| --- | --- | --- | --- |
+| USBCANFD-200U | USB | 2 | 需装周立功官方驱动 + zlgcan.dll |
+| CANFDNET-400U-TCP | 以太网 | 4 | 同一 DLL，按 IP:端口 寻址（默认端口 8000） |
 
 型号 → 设备类型编号见 `bridge.py` 的 `DEVICE_TYPES`，与官方 `zlgcan.h` 的 `ZCAN_DEVICE_TYPE` 对齐；若有偏差可在页面/环境变量里覆盖。
 

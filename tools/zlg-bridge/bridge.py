@@ -173,7 +173,8 @@ class Bus:
         if dll.ZCAN_StartCAN(ch) != 1:
             self._log("启动通道失败")
             return False
-        self._log(f"硬件已连接：{name} CH{cfg.get('channel', 0)}")
+        self._log(f"硬件已连接：{name} CH{cfg.get('channel', 0)}"
+                  + (f" @ {cfg.get('ip')}:{cfg.get('port', 8000)}" if name.endswith('-TCP') else ""))
         return True
 
     def _hw_send(self, can_id, data, ext, fd) -> bool:

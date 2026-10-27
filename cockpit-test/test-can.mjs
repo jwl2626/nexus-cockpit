@@ -1,4 +1,4 @@
-// 验证周立功 CAN 工具页：连接模拟总成 → 发送报文 → 收到帧
+﻿// 验证周立功 CAN 工具页：连接模拟总成 → 发送报文 → 收到帧
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
@@ -47,7 +47,7 @@ await cdp.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/can.html` });
 await sleep(2500);
 
 console.log("桥接状态:", await cdp.eval(`document.querySelector('#bridgePill').textContent`));
-await cdp.eval(`document.querySelector('#btnOpen').click()`);
+await cdp.eval(`document.querySelector('#devType').value='CANFDNET-400U-TCP'; document.querySelector('#devType').dispatchEvent(new Event('change'));`); await sleep(300); console.log('TCP 端口行可见:', await cdp.eval(`!document.querySelector('#portRow').hidden`), '| 通道数:', await cdp.eval(`document.querySelectorAll('#channel option').length`), '| 端口默认:', await cdp.eval(`document.querySelector('#devPort').value`)); await cdp.eval(`document.querySelector('#btnOpen').click()`);
 await sleep(2000);
 console.log("总线状态:", await cdp.eval(`document.querySelector('#busPill').textContent`), "| 模式:", await cdp.eval(`document.querySelector('#modePill').textContent`));
 
